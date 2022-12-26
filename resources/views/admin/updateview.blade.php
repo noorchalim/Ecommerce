@@ -43,7 +43,7 @@
           </div>
             @endif
 
-            <form action="{{ url('uploadproduct', $data->id) }}" method="post" enctype="multipart/form-data">
+            <form action="{{ url('updateproduct', $data->id) }}" method="post" enctype="multipart/form-data">
 
               @csrf
             <div style="padding: 15px;">
@@ -80,4 +80,8 @@
         </div>
 
         
-          
+          <!-- partial -->
+
+          @include('admin.script')
+  </body>
+</html>
