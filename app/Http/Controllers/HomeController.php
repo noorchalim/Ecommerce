@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Cart;
+use App\Models\User;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +24,12 @@ class HomeController extends Controller
         
         else{
             $data = product::paginate(3);
-            return view('user.home', compact('data'));            
+
+            $user=auth()->user();
+
+            $count=cart::where('phone',$user->phone)->count();
+
+            return view('user.home', compact('data', 'count'));            
         }
     }
 
@@ -75,5 +82,51 @@ class HomeController extends Controller
         else{
             return redirect('login');
         }
+    }
+
+    public function showcart(){
+
+        
+        $user=auth()->user();
+
+        $cart=cart::where('phone', $user->phone)->get();
+
+        $count=cart::where('phone',$user->phone)->count();
+
+
+        return view('user.showcart', compact('count', 'cart'));
+    }
+
+    public function deletecart($id){
+        $data=cart::find($id);
+        $data->delete();
+
+        return redirect()->back()->with('message', 'produk berhasil di di hapus');
+    }
+
+    public function confirmorder(Request $request){
+        $user=auth()->user();
+        $name=$user->name;
+        $phone=$user->phone;
+        $address=$user->address;
+
+        foreach($request->productname as $key=>$productname){
+            $order=new order;
+
+            $order->product_name=$request->productname[$key];
+            $order->price=$request->price[$key];
+            $order->quantity=$request->quantity[$key];
+
+            $order->name=$name;
+            $order->phone=$phone;
+            $order->address=$address;
+
+            $order->status="not delivered";
+
+            $order->save();
+        }
+
+        DB::table('carts')->where('phone', $phone)->delete();
+        return redirect()->back()->with('message', 'produk berhasil di order');
     }
 }
